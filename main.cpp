@@ -5,6 +5,7 @@
 
 #include "user.h"
 #include "help.h"
+#include "file_system.h"
 
 using namespace std;
 
@@ -14,9 +15,13 @@ struct commandEntry
     function<int(int, char const **)> entry;
 };
 
+commandEntry initCommand{"init", init};
+
 commandEntry validCommands[]{
     {"help", help},
-    {"login", login}};
+    {"login", user::login},
+    {"whoami", user::whoami},
+    initCommand};
 
 int main(int argc, char const *argv[])
 {
@@ -31,6 +36,11 @@ int main(int argc, char const *argv[])
         cmdArgv = argv + 2;
     }
 
+    // if(command != initCommand.command && !hasInit()) {
+    //     cerr << "ERROR: 未找到文件系统" << endl;
+    //     return 2;
+    // }
+
     for (auto &c : validCommands)
     {
         if (c.command == command)
@@ -40,6 +50,5 @@ int main(int argc, char const *argv[])
     }
 
     cerr << "Invalid command " << command << endl;
-
-    return 0;
+    return 1;
 }

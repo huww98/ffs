@@ -6,7 +6,8 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            "cppStandard": "c++14"
+            "compilerPath": "/usr/bin/gcc-8",
+            "cppStandard": "c++17"
         }
     ],
     "version": 4
