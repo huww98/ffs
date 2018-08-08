@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "name": "WSL",
+            "intelliSenseMode": "clang-x64",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "cppStandard": "c++14"
+        }
+    ],
+    "version": 4
+}
