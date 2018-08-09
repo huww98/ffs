@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <filesystem>
 #include <stdlib.h>
@@ -13,12 +14,26 @@ const fs::path userListFilePath("./users");
 const fs::path currentUserFilePath("./current_user");
 
 const string rootUserName("root");
+constexpr int rootUID = 0;
+constexpr int defaultUserUID = 1;
 
 namespace user
 {
-void doLogin(string userName)
+
+istream &operator>>(istream &input, user& u)
 {
-    ofstream(currentUserFilePath) << userName;
+    input >> u.uid >> ws;
+    return getline(input, u.name);
+}
+
+ostream &operator<<(ostream &output, const user& u)
+{
+    return output << u.uid << " " << u.name;
+}
+
+void doLogin(int uid)
+{
+    ofstream(currentUserFilePath) << uid;
 }
 
 int login(int argc, char const *argv[])
@@ -32,12 +47,12 @@ int login(int argc, char const *argv[])
     string userName(argv[0]);
 
     ifstream users(userListFilePath);
-    string validUser;
-    while (getline(users, validUser))
+    user u;
+    while (users >> u)
     {
-        if (userName == validUser)
+        if (userName == u.name)
         {
-            doLogin(userName);
+            doLogin(u.uid);
             return 0;
         }
     }
@@ -57,27 +72,39 @@ void init()
         return;
 
     ofstream users(userListFilePath);
-    users << rootUserName << endl;
+    users << user{rootUID, rootUserName} << endl;
+    int loginUID = rootUID;
 
-    auto systemUser = getenv("LOGNAME");
-    if (systemUser == nullptr)
-        return;
+    char *systemUser = getenv("LOGNAME");
+    if (systemUser != nullptr && systemUser != rootUserName) {
+        users << user{defaultUserUID, systemUser} << endl;
+        loginUID = defaultUserUID;
+    }
 
-    users << systemUser << endl;
-    doLogin(systemUser);
+    doLogin(loginUID);
 }
 
-std::string currentUser()
+user currentUser()
 {
-    ifstream userFile(currentUserFilePath);
-    string user;
-    getline(userFile, user);
-    return user;
+    int uid;
+    ifstream(currentUserFilePath) >> uid;
+
+    ifstream users(userListFilePath);
+    user u;
+    while(users >> u)
+    {
+        if(u.uid == uid)
+            return u;
+    }
+
+    stringstream errMsg;
+    errMsg << "invalid login state, uid " << uid << " not exists";
+    throw runtime_error(errMsg.str());
 }
 
 int whoami(int argc, char const *argv[])
 {
-    cout << currentUser() << endl;
+    cout << currentUser().name << endl;
     return 0;
 }
 
