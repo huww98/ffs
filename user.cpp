@@ -17,9 +17,6 @@ const string rootUserName("root");
 constexpr int rootUID = 0;
 constexpr int defaultUserUID = 1;
 
-namespace user
-{
-
 istream &operator>>(istream &input, user& u)
 {
     input >> u.uid >> ws;
@@ -31,7 +28,7 @@ ostream &operator<<(ostream &output, const user& u)
     return output << u.uid << " " << u.name;
 }
 
-void doLogin(int uid)
+void doLogin(ffsuid_t uid)
 {
     ofstream(currentUserFilePath) << uid;
 }
@@ -61,14 +58,14 @@ int login(int argc, char const *argv[])
     return 1;
 }
 
-bool hasInit()
+bool hasUserInit()
 {
     return fs::exists(userListFilePath) && fs::exists(currentUserFilePath);
 }
 
-void init()
+void initUser()
 {
-    if (hasInit())
+    if (hasUserInit())
         return;
 
     ofstream users(userListFilePath);
@@ -86,7 +83,7 @@ void init()
 
 user currentUser()
 {
-    int uid;
+    ffsuid_t uid;
     ifstream(currentUserFilePath) >> uid;
 
     ifstream users(userListFilePath);
@@ -107,5 +104,3 @@ int whoami(int argc, char const *argv[])
     cout << currentUser().name << endl;
     return 0;
 }
-
-} // namespace user

@@ -19,8 +19,8 @@ commandEntry initCommand{"init", init};
 
 commandEntry validCommands[]{
     {"help", help},
-    {"login", user::login},
-    {"whoami", user::whoami},
+    {"login", login},
+    {"whoami", whoami},
     initCommand};
 
 int main(int argc, char const *argv[])

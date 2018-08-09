@@ -3,22 +3,20 @@
 
 #include <string>
 
-namespace user
-{
+using ffsuid_t = std::uint16_t;
 
 struct user
 {
-    int uid;
+    ffsuid_t uid;
     std::string name;
 };
 
 int login(int argc, char const *argv[]);
 int whoami(int argc, char const *argv[]);
 
-bool hasInit();
-void init();
+bool hasUserInit();
+void initUser();
 
 user currentUser();
-} // namespace user
 
 #endif // USER_H
