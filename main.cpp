@@ -36,10 +36,15 @@ int main(int argc, char const *argv[])
         cmdArgv = argv + 2;
     }
 
-    // if(command != initCommand.command && !hasInit()) {
-    //     cerr << "ERROR: 未找到文件系统" << endl;
-    //     return 2;
-    // }
+    if(command != initCommand.command && !hasInit()) {
+        cerr << "ERROR: 未找到文件系统" << endl;
+        return 2;
+    }
+    else if (command == initCommand.command && hasInit())
+    {
+        cerr << "ERROR: 无法初始化，该文件夹下已存在文件系统" << endl;
+        return 2;
+    }
 
     for (auto &c : validCommands)
     {

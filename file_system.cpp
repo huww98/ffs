@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "user.h"
-#include "file.h"
+#include "directory.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -15,6 +15,9 @@ const blockNum_t rootDirBlockNum = 0;
 int init(int argc, char const *argv[])
 {
     initUser();
+    auto dir = directory::create(rootDirBlockNum);
+    dir.addEntry(directoryEntry::buildParentEntry(rootDirBlockNum));
+
     return 0;
 }
 

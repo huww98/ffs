@@ -15,14 +15,14 @@ std::filesystem::path file::path(blockNum_t blockNum)
 
 struct fileMetadataPresistent
 {
-    decltype(filePermission().data()) permissionData;
+    uint8_t attributeData;
     int8_t reversed = 0;
     ffsuid_t ownerUID;
 
     static fileMetadataPresistent build(const fileMetadata &metadata)
     {
         fileMetadataPresistent p;
-        p.permissionData = metadata.permission().data();
+        p.attributeData = metadata.attributeData();
         p.ownerUID = metadata.ownerUID();
         return p;
     }
@@ -42,4 +42,25 @@ file file::create(fileMetadata metadata, blockNum_t blockNum)
     ofstream newBlock(path(blockNum), ios::binary);
     newBlock << metadata;
     return file(metadata, blockNum);
+}
+
+fileMetadata::fileMetadata(ffsuid_t ownerUID, bool isDirectory)
+    : _permission(_attributeData), _ownerUID(ownerUID)
+{
+    if(isDirectory)
+    {
+        _attributeData |= isDirectoryMask;
+    }
+    _permission.owner().read(true);
+    _permission.owner().write(true);
+    _permission.all().read(true);
+    _permission.all().write(true);
+}
+
+fstream file::openStream()
+{
+    fstream s(path(), ios::binary | ios::in | ios::out);
+    s.seekg(fileMetadataSize);
+    s.seekp(fileMetadataSize);
+    return s;
 }
