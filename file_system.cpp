@@ -64,6 +64,8 @@ int cd(int argc, char const *argv[])
         auto dir = directory::open(pwd);
         pwd = dir.findEntry(e.string());
     }
+
+    directory::open(pwd); // check pwd indeed is a directory
     ofstream(pwdFilePath) << pwd;
 
     return 0;

@@ -29,4 +29,11 @@ class directory
     blockNum_t findEntry(std::string name);
 };
 
+class not_a_directory : public std::runtime_error
+{
+    using base = std::runtime_error;
+  public:
+    not_a_directory() : base("Trying to open a file that is not directory.") {}
+};
+
 #endif // DIRECTORY_H

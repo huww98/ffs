@@ -79,9 +79,9 @@ class fileMetadata
 class file
 {
   private:
-    fileMetadata metadata;
+    fileMetadata _metadata;
     blockNum_t blockNum;
-    file(fileMetadata metadata, blockNum_t blockNum) : metadata(metadata), blockNum(blockNum) {}
+    file(fileMetadata metadata, blockNum_t blockNum) : _metadata(metadata), blockNum(blockNum) {}
 
   public:
     static std::filesystem::path path(blockNum_t blockNum);
@@ -89,6 +89,7 @@ class file
     static file open(blockNum_t blockNum);
 
     std::filesystem::path path() { return path(this->blockNum); }
+    fileMetadata &metadata() { return _metadata; }
     std::fstream openStream();
 };
 

@@ -27,6 +27,10 @@ directory directory::create(blockNum_t blockNum)
 directory directory::open(blockNum_t blockNum)
 {
     auto file = file::open(blockNum);
+    if(!file.metadata().isDirectory())
+    {
+        throw not_a_directory();
+    }
     return directory(file);
 }
 

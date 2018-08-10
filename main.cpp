@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
             }
             catch(const exception& e)
             {
-                std::cerr << e.what() << endl;
+                std::cerr << "ERROR: " << e.what() << endl;
                 return 3;
             }
         }
