@@ -21,7 +21,7 @@ directoryEntry::directoryEntry(string name, blockNum_t blockNum)
 
 directoryEntry directoryEntry::buildParentEntry(blockNum_t blockNum)
 {
-    return directoryEntry("..", blockNum);
+    return directoryEntry(parentDirEntryName, blockNum);
 }
 
 directory directory::create(blockNum_t blockNum)
@@ -34,7 +34,7 @@ directory directory::create(blockNum_t blockNum)
 directory directory::open(blockNum_t blockNum)
 {
     auto file = file::open(blockNum);
-    if(!file.metadata().isDirectory())
+    if (!file.metadata().isDirectory())
     {
         throw not_a_directory();
     }
@@ -60,9 +60,9 @@ void directory::addEntry(directoryEntry entry)
     bool foundPos = false;
     while (stream >> readEntry)
     {
-        if(readEntry.isInUse)
+        if (readEntry.isInUse)
         {
-            if(strcmp(readEntry.name, entry.name) == 0)
+            if (strcmp(readEntry.name, entry.name) == 0)
                 throw runtime_error("directory entry with the same name has exist.");
         }
         else
@@ -73,7 +73,7 @@ void directory::addEntry(directoryEntry entry)
     }
 
     stream.clear();
-    if(foundPos)
+    if (foundPos)
         stream.seekp(writePos);
     else
         stream.seekp(0, ios::end);
@@ -91,7 +91,7 @@ blockNum_t directory::findEntry(string name)
         {
             continue;
         }
-        if(readEntry.name == name)
+        if (readEntry.name == name)
         {
             return readEntry.blockNum;
         }
@@ -99,5 +99,27 @@ blockNum_t directory::findEntry(string name)
 
     stringstream errMsg;
     errMsg << "Directory entry " << quoted(name) << " not found.";
+    throw out_of_range(errMsg.str());
+}
+
+string directory::findEntryName(blockNum_t n)
+{
+    auto stream = _file.openStream();
+
+    directoryEntry readEntry;
+    while (stream >> readEntry)
+    {
+        if (!readEntry.isInUse)
+        {
+            continue;
+        }
+        if (readEntry.blockNum == n)
+        {
+            return readEntry.name;
+        }
+    }
+
+    stringstream errMsg;
+    errMsg << "Directory entry matching the block number not found.";
     throw out_of_range(errMsg.str());
 }

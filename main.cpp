@@ -23,6 +23,7 @@ commandEntry validCommands[]{
     {"whoami", whoami},
     {"mkdir", mkdir},
     {"cd", cd},
+    {"pwd", pwd},
     initCommand};
 
 int main(int argc, char const *argv[])
@@ -38,7 +39,8 @@ int main(int argc, char const *argv[])
         cmdArgv = argv + 2;
     }
 
-    if(command != initCommand.command && !hasInit()) {
+    if (command != initCommand.command && !hasInit())
+    {
         cerr << "ERROR: 未找到文件系统" << endl;
         return 2;
     }
@@ -56,7 +58,7 @@ int main(int argc, char const *argv[])
             {
                 return c.entry(cmdArgc, cmdArgv);
             }
-            catch(const exception& e)
+            catch (const exception &e)
             {
                 std::cerr << "ERROR: " << e.what() << endl;
                 return 3;

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 #include "user.h"
 #include "directory.h"
@@ -121,5 +122,27 @@ int mkdir(int argc, char const *argv[])
     dir.addEntry(directoryEntry::buildParentEntry(parentBlockNum));
     parentDir.addEntry(directoryEntry(p.filename(), newDirBlockNum));
 
+    return 0;
+}
+
+int pwd(int argc, char const *argv[])
+{
+    vector<fs::path> pathSegments;
+    blockNum_t n = getPwd();
+    while (n != rootDirBlockNum)
+    {
+        auto dir = directory::open(n);
+        auto parentDirBlockNum = dir.findEntry(parentDirEntryName);
+        auto parentDir = directory::open(parentDirBlockNum);
+        pathSegments.push_back(parentDir.findEntryName(n));
+        n = parentDirBlockNum;
+    }
+
+    fs::path pwd = "/";
+    for (auto it = pathSegments.rbegin(); it != pathSegments.rend(); ++it)
+    {
+        pwd /= *it;
+    }
+    cout << pwd.string() << endl;
     return 0;
 }

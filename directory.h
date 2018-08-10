@@ -3,6 +3,10 @@
 
 #include "file.h"
 
+#include <string>
+
+const std::string parentDirEntryName = "..";
+
 struct directoryEntry
 {
     bool isInUse = true;
@@ -29,11 +33,13 @@ class directory
     static directory open(blockNum_t blockNum);
     void addEntry(directoryEntry entry);
     blockNum_t findEntry(std::string name);
+    std::string findEntryName(blockNum_t);
 };
 
 class not_a_directory : public std::runtime_error
 {
     using base = std::runtime_error;
+
   public:
     not_a_directory() : base("Trying to open a file that is not directory.") {}
 };
