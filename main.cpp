@@ -21,6 +21,7 @@ commandEntry validCommands[]{
     {"help", help},
     {"login", login},
     {"whoami", whoami},
+    {"mkdir", mkdir},
     {"cd", cd},
     initCommand};
 

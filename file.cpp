@@ -5,12 +5,15 @@
 #include <iomanip>
 
 using namespace std;
+namespace fs = std::filesystem;
 
-std::filesystem::path file::path(blockNum_t blockNum)
+const fs::path blocksDirPath = "blocks";
+
+fs::path file::path(blockNum_t blockNum)
 {
     stringstream name;
     name << hex << setw(8) << setfill('0') << blockNum;
-    return name.str();
+    return blocksDirPath / name.str();
 }
 
 struct fileMetadataPresistent

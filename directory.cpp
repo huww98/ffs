@@ -9,12 +9,19 @@
 
 using namespace std;
 
+directoryEntry::directoryEntry(string name, blockNum_t blockNum)
+    : blockNum(blockNum)
+{
+    auto maxSize = sizeof(this->name) - 1;
+    if (name.size() > maxSize)
+        throw out_of_range("name too long.");
+
+    name.copy(this->name, maxSize);
+}
+
 directoryEntry directoryEntry::buildParentEntry(blockNum_t blockNum)
 {
-    directoryEntry e;
-    strcpy(e.name, "..");
-    e.blockNum = blockNum;
-    return e;
+    return directoryEntry("..", blockNum);
 }
 
 directory directory::create(blockNum_t blockNum)
@@ -49,18 +56,27 @@ void directory::addEntry(directoryEntry entry)
     auto stream = _file.openStream();
 
     directoryEntry readEntry;
-    while(stream >> readEntry)
+    streampos writePos;
+    bool foundPos = false;
+    while (stream >> readEntry)
     {
-        if(!readEntry.isInUse)
+        if(readEntry.isInUse)
         {
-            stream.seekp(stream.tellg() - streamoff(directoryEntrySize));
-            stream << entry;
-            return;
+            if(strcmp(readEntry.name, entry.name) == 0)
+                throw runtime_error("directory entry with the same name has exist.");
+        }
+        else
+        {
+            writePos = stream.tellg() - streamoff(directoryEntrySize);
+            foundPos = true;
         }
     }
 
     stream.clear();
-    stream.seekp(0, ios::end);
+    if(foundPos)
+        stream.seekp(writePos);
+    else
+        stream.seekp(0, ios::end);
     stream << entry;
 }
 

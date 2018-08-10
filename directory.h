@@ -11,6 +11,8 @@ struct directoryEntry
     blockNum_t blockNum;
 
     static directoryEntry buildParentEntry(blockNum_t blockNum);
+    directoryEntry(std::string name, blockNum_t blockNum);
+    directoryEntry() {}
 };
 
 constexpr size_t directoryEntrySize = 256;

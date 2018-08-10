@@ -9,6 +9,7 @@
 #include "user.h"
 
 using blockNum_t = std::uint32_t;
+extern const std::filesystem::path blocksDirPath;
 
 class permission
 {
