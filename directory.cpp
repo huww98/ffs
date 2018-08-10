@@ -2,6 +2,8 @@
 
 #include <cstring>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #include "user.h"
 
@@ -19,6 +21,12 @@ directory directory::create(blockNum_t blockNum)
 {
     fileMetadata metadata(currentUser().uid, true);
     auto file = file::create(metadata, blockNum);
+    return directory(file);
+}
+
+directory directory::open(blockNum_t blockNum)
+{
+    auto file = file::open(blockNum);
     return directory(file);
 }
 
@@ -50,4 +58,26 @@ void directory::addEntry(directoryEntry entry)
     stream.clear();
     stream.seekp(0, ios::end);
     stream << entry;
+}
+
+blockNum_t directory::findEntry(string name)
+{
+    auto stream = _file.openStream();
+
+    directoryEntry readEntry;
+    while (stream >> readEntry)
+    {
+        if (!readEntry.isInUse)
+        {
+            continue;
+        }
+        if(readEntry.name == name)
+        {
+            return readEntry.blockNum;
+        }
+    }
+
+    stringstream errMsg;
+    errMsg << "Directory entry " << quoted(name) << " not found.";
+    throw out_of_range(errMsg.str());
 }

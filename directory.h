@@ -24,7 +24,9 @@ class directory
   public:
     directory(file f) : _file(f) {}
     static directory create(blockNum_t blockNum);
+    static directory open(blockNum_t blockNum);
     void addEntry(directoryEntry entry);
+    blockNum_t findEntry(std::string name);
 };
 
 #endif // DIRECTORY_H

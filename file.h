@@ -57,6 +57,7 @@ class filePermission
     permission &all() { return this->allPermission; }
 };
 
+class fileMetadataPresistent;
 class fileMetadata
 {
   private:
@@ -68,6 +69,7 @@ class fileMetadata
 
   public:
     fileMetadata(ffsuid_t ownerUID, bool isDirectory = false);
+    fileMetadata(fileMetadataPresistent);
     const filePermission &permission() const { return _permission; }
     ffsuid_t ownerUID() const { return _ownerUID; }
     bool isDirectory() const { return _attributeData & isDirectoryMask; }
@@ -84,6 +86,7 @@ class file
   public:
     static std::filesystem::path path(blockNum_t blockNum);
     static file create(fileMetadata metadata, blockNum_t blockNum);
+    static file open(blockNum_t blockNum);
 
     std::filesystem::path path() { return path(this->blockNum); }
     std::fstream openStream();

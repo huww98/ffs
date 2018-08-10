@@ -4,4 +4,6 @@
 int init(int argc, char const *argv[]);
 bool hasInit();
 
+int cd(int argc, char const *argv[]);
+
 #endif // FILES_H

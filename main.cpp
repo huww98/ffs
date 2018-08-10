@@ -21,6 +21,7 @@ commandEntry validCommands[]{
     {"help", help},
     {"login", login},
     {"whoami", whoami},
+    {"cd", cd},
     initCommand};
 
 int main(int argc, char const *argv[])
@@ -50,7 +51,15 @@ int main(int argc, char const *argv[])
     {
         if (c.command == command)
         {
-            return c.entry(cmdArgc, cmdArgv);
+            try
+            {
+                return c.entry(cmdArgc, cmdArgv);
+            }
+            catch(const exception& e)
+            {
+                std::cerr << e.what() << endl;
+                return 3;
+            }
         }
     }
 

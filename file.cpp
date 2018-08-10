@@ -37,10 +37,22 @@ ostream &operator<<(ostream &output, const fileMetadata &metadata)
     return output.write(reinterpret_cast<char *>(&p), fileMetadataSize);
 }
 
+istream &operator>>(istream &input, fileMetadataPresistent &metadata)
+{
+    return input.read(reinterpret_cast<char *>(&metadata), fileMetadataSize);
+}
+
 file file::create(fileMetadata metadata, blockNum_t blockNum)
 {
     ofstream newBlock(path(blockNum), ios::binary);
     newBlock << metadata;
+    return file(metadata, blockNum);
+}
+
+file file::open(blockNum_t blockNum)
+{
+    fileMetadataPresistent metadata;
+    ifstream(path(blockNum)) >> metadata;
     return file(metadata, blockNum);
 }
 
@@ -57,10 +69,19 @@ fileMetadata::fileMetadata(ffsuid_t ownerUID, bool isDirectory)
     _permission.all().write(true);
 }
 
+fileMetadata::fileMetadata(fileMetadataPresistent p)
+    : _attributeData(p.attributeData), _permission(_attributeData), _ownerUID(p.ownerUID)
+{
+}
+
 fstream file::openStream()
 {
     fstream s(path(), ios::binary | ios::in | ios::out);
     s.seekg(fileMetadataSize);
     s.seekp(fileMetadataSize);
+
+    if(!s)
+        throw runtime_error("something wrong when open stream");
+
     return s;
 }
