@@ -18,5 +18,6 @@ bool hasUserInit();
 void initUser();
 
 user currentUser();
+user getUser(ffsuid_t);
 
 #endif // USER_H

@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -144,5 +145,33 @@ int pwd(int argc, char const *argv[])
         pwd /= *it;
     }
     cout << pwd.string() << endl;
+    return 0;
+}
+
+int ls(int argc, char const *argv[])
+{
+    auto dirBlockNum = getBlockNumberByPath(argc > 0 ? argv[0] : "");
+    auto dir = directory::open(dirBlockNum);
+
+    for (auto &e : dir.allEntries())
+    {
+        auto file = file::open(e.blockNum);
+        auto &metadata = file.metadata();
+        auto permission = metadata.permission();
+
+        cout << (metadata.isDirectory() ? "d" : "-")
+             << (permission.user().read() ? "r" : "-")
+             << (permission.user().write() ? "w" : "-")
+             << (permission.other().read() ? "r" : "-")
+             << (permission.other().write() ? "w" : "-")
+             << " " << hex << setw(8) << setfill('0') << e.blockNum
+             << " " << dec << setw(10) << setfill(' ') << file.size()
+             << " " << setw(8) << getUser(file.metadata().ownerUID()).name
+             << " " << e.name;
+        if (metadata.isDirectory())
+            cout << "/";
+        cout << endl;
+    }
+
     return 0;
 }

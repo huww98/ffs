@@ -7,5 +7,6 @@ bool hasInit();
 int cd(int argc, char const *argv[]);
 int mkdir(int argc, char const *argv[]);
 int pwd(int argc, char const *argv[]);
+int ls(int argc, char const *argv[]);
 
 #endif // FILES_H

@@ -49,13 +49,15 @@ class linuxStylePermission final : public permission
 class filePermission
 {
   private:
-    linuxStylePermission<3> ownerPermission;
-    linuxStylePermission<0> allPermission;
+    linuxStylePermission<3> userPermission;
+    linuxStylePermission<0> otherPermission;
 
   public:
-    filePermission(std::uint8_t &data) : ownerPermission(data), allPermission(data) {}
-    permission &owner() { return this->ownerPermission; }
-    permission &all() { return this->allPermission; }
+    filePermission(std::uint8_t &data) : userPermission(data), otherPermission(data) {}
+    permission &user() { return this->userPermission; }
+    const permission &user() const { return this->userPermission; }
+    permission &other() { return this->otherPermission; }
+    const permission &other() const { return this->otherPermission; }
 };
 
 class fileMetadataPresistent;
@@ -63,7 +65,6 @@ class fileMetadata
 {
   private:
     uint8_t _attributeData = 0;
-    filePermission _permission;
     ffsuid_t _ownerUID;
 
     constexpr static uint8_t isDirectoryMask = 1 << 7;
@@ -71,10 +72,10 @@ class fileMetadata
   public:
     fileMetadata(ffsuid_t ownerUID, bool isDirectory = false);
     fileMetadata(fileMetadataPresistent);
-    const filePermission &permission() const { return _permission; }
+    filePermission permission() { return filePermission(_attributeData); }
     ffsuid_t ownerUID() const { return _ownerUID; }
     bool isDirectory() const { return _attributeData & isDirectoryMask; }
-    auto &attributeData() const { return _attributeData; }
+    auto attributeData() const { return _attributeData; }
 };
 
 class file
@@ -92,6 +93,7 @@ class file
     std::filesystem::path path() { return path(this->blockNum); }
     fileMetadata &metadata() { return _metadata; }
     std::fstream openStream();
+    std::size_t size();
 };
 
 #endif // FILE_H

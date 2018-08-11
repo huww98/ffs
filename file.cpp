@@ -60,20 +60,21 @@ file file::open(blockNum_t blockNum)
 }
 
 fileMetadata::fileMetadata(ffsuid_t ownerUID, bool isDirectory)
-    : _permission(_attributeData), _ownerUID(ownerUID)
+    : _ownerUID(ownerUID)
 {
     if(isDirectory)
     {
         _attributeData |= isDirectoryMask;
     }
-    _permission.owner().read(true);
-    _permission.owner().write(true);
-    _permission.all().read(true);
-    _permission.all().write(true);
+    auto permission = this->permission();
+    permission.user().read(true);
+    permission.user().write(true);
+    permission.other().read(true);
+    permission.other().write(true);
 }
 
 fileMetadata::fileMetadata(fileMetadataPresistent p)
-    : _attributeData(p.attributeData), _permission(_attributeData), _ownerUID(p.ownerUID)
+    : _attributeData(p.attributeData), _ownerUID(p.ownerUID)
 {
 }
 
@@ -87,4 +88,9 @@ fstream file::openStream()
         throw runtime_error("something wrong when open stream");
 
     return s;
+}
+
+size_t file::size()
+{
+    return fs::file_size(this->path()) - fileMetadataSize;
 }

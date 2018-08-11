@@ -24,6 +24,7 @@ commandEntry validCommands[]{
     {"mkdir", mkdir},
     {"cd", cd},
     {"pwd", pwd},
+    {"ls", ls},
     initCommand};
 
 int main(int argc, char const *argv[])

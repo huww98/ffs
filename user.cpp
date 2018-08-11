@@ -17,13 +17,13 @@ const string rootUserName("root");
 constexpr int rootUID = 0;
 constexpr int defaultUserUID = 1;
 
-istream &operator>>(istream &input, user& u)
+istream &operator>>(istream &input, user &u)
 {
     input >> u.uid >> ws;
     return getline(input, u.name);
 }
 
-ostream &operator<<(ostream &output, const user& u)
+ostream &operator<<(ostream &output, const user &u)
 {
     return output << u.uid << " " << u.name;
 }
@@ -73,7 +73,8 @@ void initUser()
     int loginUID = rootUID;
 
     char *systemUser = getenv("LOGNAME");
-    if (systemUser != nullptr && systemUser != rootUserName) {
+    if (systemUser != nullptr && systemUser != rootUserName)
+    {
         users << user{defaultUserUID, systemUser} << endl;
         loginUID = defaultUserUID;
     }
@@ -85,18 +86,22 @@ user currentUser()
 {
     ffsuid_t uid;
     ifstream(currentUserFilePath) >> uid;
+    return getUser(uid);
+}
 
+user getUser(ffsuid_t uid)
+{
     ifstream users(userListFilePath);
     user u;
-    while(users >> u)
+    while (users >> u)
     {
-        if(u.uid == uid)
+        if (u.uid == uid)
             return u;
     }
 
     stringstream errMsg;
-    errMsg << "invalid login state, uid " << uid << " not exists";
-    throw runtime_error(errMsg.str());
+    errMsg << "uid " << uid << " not exists";
+    throw out_of_range(errMsg.str());
 }
 
 int whoami(int argc, char const *argv[])

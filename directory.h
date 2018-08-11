@@ -34,6 +34,7 @@ class directory
     void addEntry(directoryEntry entry);
     blockNum_t findEntry(std::string name);
     std::string findEntryName(blockNum_t);
+    std::vector<directoryEntry> allEntries();
 };
 
 class not_a_directory : public std::runtime_error

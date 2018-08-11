@@ -123,3 +123,21 @@ string directory::findEntryName(blockNum_t n)
     errMsg << "Directory entry matching the block number not found.";
     throw out_of_range(errMsg.str());
 }
+
+vector<directoryEntry> directory::allEntries()
+{
+    auto stream = _file.openStream();
+
+    directoryEntry readEntry;
+    vector<directoryEntry> entries;
+    while (stream >> readEntry)
+    {
+        if (!readEntry.isInUse)
+        {
+            continue;
+        }
+        entries.push_back(readEntry);
+    }
+
+    return entries;
+}
