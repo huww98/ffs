@@ -94,3 +94,8 @@ size_t file::size()
 {
     return fs::file_size(this->path()) - fileMetadataSize;
 }
+
+void file::remove()
+{
+    fs::remove(this->path());
+}

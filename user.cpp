@@ -33,7 +33,7 @@ void doLogin(ffsuid_t uid)
     ofstream(currentUserFilePath) << uid;
 }
 
-int login(int argc, char const *argv[])
+int login(int argc, char *argv[])
 {
     if (argc == 0)
     {
@@ -104,7 +104,7 @@ user getUser(ffsuid_t uid)
     throw out_of_range(errMsg.str());
 }
 
-int whoami(int argc, char const *argv[])
+int whoami(int argc, char *argv[])
 {
     cout << currentUser().name << endl;
     return 0;

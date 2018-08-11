@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <functional>
-#include <getopt.h>
 
 #include "user.h"
 #include "help.h"
@@ -12,7 +11,7 @@ using namespace std;
 struct commandEntry
 {
     string command;
-    function<int(int, char const **)> entry;
+    function<int(int, char **)> entry;
 };
 
 commandEntry initCommand{"init", init};
@@ -25,13 +24,14 @@ commandEntry validCommands[]{
     {"cd", cd},
     {"pwd", pwd},
     {"ls", ls},
+    {"rm", rm},
     initCommand};
 
-int main(int argc, char const *argv[])
+int main(int argc, char *argv[])
 {
     string command("help");
     int cmdArgc = 0;
-    char const **cmdArgv = nullptr;
+    char **cmdArgv = nullptr;
 
     if (argc > 1)
     {

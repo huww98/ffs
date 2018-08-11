@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <getopt.h>
 
 #include "user.h"
 #include "directory.h"
@@ -21,14 +22,15 @@ void initPwd()
     ofstream(pwdFilePath) << rootDirBlockNum;
 }
 
-int init(int argc, char const *argv[])
+int init(int argc, char *argv[])
 {
     initUser();
 
     fs::create_directory(blocksDirPath);
 
     auto dir = directory::create(rootDirBlockNum);
-    dir.addEntry(directoryEntry::buildParentEntry(rootDirBlockNum));
+    dir.addEntry(directoryEntry(currentDirEntryName, rootDirBlockNum));
+    dir.addEntry(directoryEntry(parentDirEntryName, rootDirBlockNum));
 
     initPwd();
 
@@ -91,7 +93,7 @@ blockNum_t findEmptyBlock()
     return bitmap.size();
 }
 
-int cd(int argc, char const *argv[])
+int cd(int argc, char *argv[])
 {
     if (argc == 0)
     {
@@ -107,7 +109,7 @@ int cd(int argc, char const *argv[])
     return 0;
 }
 
-int mkdir(int argc, char const *argv[])
+int mkdir(int argc, char *argv[])
 {
     if (argc == 0)
     {
@@ -120,13 +122,14 @@ int mkdir(int argc, char const *argv[])
     auto parentDir = directory::open(parentBlockNum);
     auto newDirBlockNum = findEmptyBlock();
     auto dir = directory::create(newDirBlockNum);
-    dir.addEntry(directoryEntry::buildParentEntry(parentBlockNum));
+    dir.addEntry(directoryEntry(currentDirEntryName, newDirBlockNum));
+    dir.addEntry(directoryEntry(parentDirEntryName, parentBlockNum));
     parentDir.addEntry(directoryEntry(p.filename(), newDirBlockNum));
 
     return 0;
 }
 
-int pwd(int argc, char const *argv[])
+int pwd(int argc, char *argv[])
 {
     vector<fs::path> pathSegments;
     blockNum_t n = getPwd();
@@ -148,7 +151,7 @@ int pwd(int argc, char const *argv[])
     return 0;
 }
 
-int ls(int argc, char const *argv[])
+int ls(int argc, char *argv[])
 {
     auto dirBlockNum = getBlockNumberByPath(argc > 0 ? argv[0] : "");
     auto dir = directory::open(dirBlockNum);
@@ -171,6 +174,78 @@ int ls(int argc, char const *argv[])
         if (metadata.isDirectory())
             cout << "/";
         cout << endl;
+    }
+
+    return 0;
+}
+
+void rmdir(file &dirFile)
+{
+    auto dir = directory(dirFile);
+    for (auto &e : dir.allEntries())
+    {
+        if (e.name == parentDirEntryName || e.name == currentDirEntryName)
+            continue;
+
+        auto file = file::open(e.blockNum);
+        if (file.metadata().isDirectory())
+        {
+            rmdir(file);
+        }
+        else
+        {
+            file.remove();
+        }
+    }
+    dirFile.remove();
+}
+
+int rm(int argc, char *argv[])
+{
+    int opt;
+    bool r = false;
+    while ((opt = getopt(argc + 1, argv - 1, "r")) != -1) // getopt expect options start at argv index 1, not 0;
+    {
+        switch (opt)
+        {
+        case 'r':
+            r = true;
+            break;
+        default: /* '?' */
+            throw runtime_error("invalid argument");
+        }
+    }
+    if (optind > argc)
+    {
+        throw runtime_error("缺少参数：要删除的目录。");
+    }
+
+    for (int i = optind - 1; i < argc; i++)
+    {
+        fs::path p = argv[i];
+        blockNum_t parentN = getBlockNumberByPath(p.parent_path());
+        auto parentDir = directory::open(parentN);
+        streampos pos;
+        blockNum_t n = parentDir.findEntry(p.filename(), pos);
+        if (n == rootDirBlockNum)
+            throw runtime_error("根目录不能被删除");
+
+        auto file = file::open(n);
+        if (file.metadata().isDirectory())
+        {
+            if (!r)
+            {
+                stringstream errMsg;
+                errMsg << p << " is a directory, but no -r is specified.";
+                throw runtime_error(errMsg.str());
+            }
+            rmdir(file);
+        }
+        else
+        {
+            file.remove();
+        }
+        parentDir.removeEntry(pos);
     }
 
     return 0;

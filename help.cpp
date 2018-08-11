@@ -50,9 +50,18 @@ rm     删除文件
 
 格式： ffs ls [<路径>]
 
-若未指定路径，则列出当前目录的内容)---"}};
+若未指定路径，则列出当前目录的内容)---"},
 
-int help(int argc, char const *argv[])
+    {"rm", R"---(删除文件
+
+格式： ffs rm [<选项>]... [<路径>]...
+
+选项：
+  -r  递归地删除文件夹和里面的内容
+
+根目录不可删除)---"}};
+
+int help(int argc, char *argv[])
 {
     string cmd = "help";
     if (argc > 0)

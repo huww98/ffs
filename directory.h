@@ -6,6 +6,7 @@
 #include <string>
 
 const std::string parentDirEntryName = "..";
+const std::string currentDirEntryName = ".";
 
 struct directoryEntry
 {
@@ -14,7 +15,6 @@ struct directoryEntry
     char name[250] = {0};
     blockNum_t blockNum;
 
-    static directoryEntry buildParentEntry(blockNum_t blockNum);
     directoryEntry(std::string name, blockNum_t blockNum);
     directoryEntry() {}
 };
@@ -32,9 +32,12 @@ class directory
     static directory create(blockNum_t blockNum);
     static directory open(blockNum_t blockNum);
     void addEntry(directoryEntry entry);
+
+    blockNum_t findEntry(std::string name, std::streampos &foundPosition);
     blockNum_t findEntry(std::string name);
     std::string findEntryName(blockNum_t);
     std::vector<directoryEntry> allEntries();
+    void removeEntry(std::streampos foundPosition);
 };
 
 class not_a_directory : public std::runtime_error

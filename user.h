@@ -11,8 +11,8 @@ struct user
     std::string name;
 };
 
-int login(int argc, char const *argv[]);
-int whoami(int argc, char const *argv[]);
+int login(int argc, char *argv[]);
+int whoami(int argc, char *argv[]);
 
 bool hasUserInit();
 void initUser();

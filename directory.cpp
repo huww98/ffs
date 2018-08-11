@@ -19,11 +19,6 @@ directoryEntry::directoryEntry(string name, blockNum_t blockNum)
     name.copy(this->name, maxSize);
 }
 
-directoryEntry directoryEntry::buildParentEntry(blockNum_t blockNum)
-{
-    return directoryEntry(parentDirEntryName, blockNum);
-}
-
 directory directory::create(blockNum_t blockNum)
 {
     fileMetadata metadata(currentUser().uid, true);
@@ -82,6 +77,12 @@ void directory::addEntry(directoryEntry entry)
 
 blockNum_t directory::findEntry(string name)
 {
+    streampos pos;
+    return this->findEntry(name, pos);
+}
+
+blockNum_t directory::findEntry(string name, streampos &foundPosition)
+{
     auto stream = _file.openStream();
 
     directoryEntry readEntry;
@@ -93,6 +94,7 @@ blockNum_t directory::findEntry(string name)
         }
         if (readEntry.name == name)
         {
+            foundPosition = stream.tellg() - streamoff(directoryEntrySize);
             return readEntry.blockNum;
         }
     }
@@ -140,4 +142,14 @@ vector<directoryEntry> directory::allEntries()
     }
 
     return entries;
+}
+
+void directory::removeEntry(streampos pos)
+{
+    auto stream = _file.openStream();
+
+    directoryEntry removedEntry;
+    removedEntry.isInUse = false;
+    stream.seekp(pos);
+    stream << removedEntry;
 }

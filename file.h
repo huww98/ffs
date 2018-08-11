@@ -94,6 +94,7 @@ class file
     fileMetadata &metadata() { return _metadata; }
     std::fstream openStream();
     std::size_t size();
+    void remove();
 };
 
 #endif // FILE_H
