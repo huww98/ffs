@@ -25,6 +25,8 @@ commandEntry validCommands[]{
     {"pwd", pwd},
     {"ls", ls},
     {"rm", rm},
+    {"read", read},
+    {"write", write},
     initCommand};
 
 int main(int argc, char *argv[])

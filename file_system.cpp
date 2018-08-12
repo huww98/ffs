@@ -1,6 +1,7 @@
 #include "file_system.h"
 
 #include <filesystem>
+#include <memory>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -248,5 +249,52 @@ int rm(int argc, char *argv[])
         parentDir.removeEntry(pos);
     }
 
+    return 0;
+}
+
+int read(int argc, char *argv[])
+{
+    if (argc == 0)
+    {
+        throw runtime_error("缺少参数：要读取的文件。");
+    }
+    blockNum_t n = getBlockNumberByPath(argv[0]);
+    auto file = file::open(n);
+    if(file.metadata().isDirectory())
+        throw runtime_error("cannot read from a directory.");
+
+    auto stream = file.openStream();
+    cout << stream.rdbuf();
+    return 0;
+}
+
+int write(int argc, char *argv[])
+{
+    if (argc == 0)
+    {
+        throw runtime_error("缺少参数：要写入的文件。");
+    }
+    fs::path p(argv[0]);
+    blockNum_t parentN = getBlockNumberByPath(p.parent_path());
+    auto dir = directory::open(parentN);
+    unique_ptr<file> f;
+
+    try
+    {
+        blockNum_t n = dir.findEntry(p.filename());
+        f = make_unique<file>(file::open(n));
+        if (f->metadata().isDirectory())
+            throw runtime_error("cannot write to a directory.");
+        f->truncate();
+    }
+    catch(out_of_range&)
+    {
+        blockNum_t n = findEmptyBlock();
+        f = make_unique<file>(file::create(fileMetadata(currentUser().uid), n));
+        dir.addEntry(directoryEntry(p.filename(), n));
+    }
+
+    auto stream = f->openStream();
+    stream << cin.rdbuf();
     return 0;
 }

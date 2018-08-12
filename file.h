@@ -95,6 +95,7 @@ class file
     std::fstream openStream();
     std::size_t size();
     void remove();
+    void truncate();
 };
 
 #endif // FILE_H

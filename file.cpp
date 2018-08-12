@@ -99,3 +99,8 @@ void file::remove()
 {
     fs::remove(this->path());
 }
+
+void file::truncate()
+{
+    fs::resize_file(this->path(), fileMetadataSize);
+}
