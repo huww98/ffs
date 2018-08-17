@@ -109,3 +109,31 @@ int whoami(int argc, char *argv[])
     cout << currentUser().name << endl;
     return 0;
 }
+
+int adduser(int argc, char *argv[])
+{
+    if(argc <= 0)
+        throw runtime_error("缺少参数：要添加的用户");
+
+    if(currentUser().uid != rootUID)
+        throw runtime_error("only root can add user.");
+
+    fstream users(userListFilePath);
+    user u;
+    ffsuid_t lastUid = 0;
+    while (users >> u)
+    {
+        if(u.name == argv[0])
+            throw runtime_error("user already exists.");
+        lastUid = u.uid;
+    }
+
+    user newUser;
+    newUser.uid = lastUid + 1;
+    newUser.name = argv[0];
+    users.clear();
+    users.seekp(0, ios::end);
+    users << newUser << endl;
+
+    return 0;
+}

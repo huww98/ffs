@@ -13,6 +13,7 @@ struct user
 
 int login(int argc, char *argv[]);
 int whoami(int argc, char *argv[]);
+int adduser(int argc, char *argv[]);
 
 bool hasUserInit();
 void initUser();

@@ -15,11 +15,12 @@ struct commandEntry
 };
 
 commandEntry initCommand{"init", init};
+commandEntry helpCommand{"help", help};
 
 commandEntry validCommands[]{
-    {"help", help},
     {"login", login},
     {"whoami", whoami},
+    {"adduser", adduser},
     {"mkdir", mkdir},
     {"cd", cd},
     {"pwd", pwd},
@@ -27,7 +28,7 @@ commandEntry validCommands[]{
     {"rm", rm},
     {"read", read},
     {"write", write},
-    initCommand};
+    initCommand, helpCommand};
 
 int main(int argc, char *argv[])
 {
@@ -42,21 +43,16 @@ int main(int argc, char *argv[])
         cmdArgv = argv + 2;
     }
 
-    if (command != initCommand.command && !hasInit())
-    {
-        cerr << "ERROR: 未找到文件系统" << endl;
-        return 2;
-    }
-    else if (command == initCommand.command && hasInit())
-    {
-        cerr << "ERROR: 无法初始化，该文件夹下已存在文件系统" << endl;
-        return 2;
-    }
-
     for (auto &c : validCommands)
     {
         if (c.command == command)
         {
+            if (command != initCommand.command && command != helpCommand.command && !hasInit())
+            {
+                cerr << "ERROR: 未找到文件系统" << endl;
+                return 2;
+            }
+
             try
             {
                 return c.entry(cmdArgc, cmdArgv);

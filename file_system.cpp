@@ -25,6 +25,9 @@ void initPwd()
 
 int init(int argc, char *argv[])
 {
+    if (hasInit())
+        throw runtime_error("无法初始化，该文件夹下已存在文件系统");
+
     initUser();
 
     fs::create_directory(blocksDirPath);
@@ -152,30 +155,70 @@ int pwd(int argc, char *argv[])
     return 0;
 }
 
+int cmdoptind = 0;
+int cmdgetopt(int argc, char *argv[], const char *shortopts)
+{
+    // getopt expect options start at argv index 1, not 0;
+    auto result = getopt(argc + 1, argv - 1, shortopts);
+    cmdoptind = optind - 1;
+    return result;
+}
+
 int ls(int argc, char *argv[])
 {
-    auto dirBlockNum = getBlockNumberByPath(argc > 0 ? argv[0] : "");
+    int opt;
+    bool l = false;
+    bool nullTerminate = false;
+    while ((opt = cmdgetopt(argc, argv, "l0")) != -1)
+    {
+        switch (opt)
+        {
+        case 'l':
+            l = true;
+            break;
+        case '0':
+            nullTerminate = true;
+            break;
+        default: /* '?' */
+            throw runtime_error("invalid argument");
+        }
+    }
+
+    auto dirBlockNum = getBlockNumberByPath(cmdoptind < argc ? argv[cmdoptind] : "");
     auto dir = directory::open(dirBlockNum);
 
     for (auto &e : dir.allEntries())
     {
         auto file = file::open(e.blockNum);
         auto &metadata = file.metadata();
-        auto permission = metadata.permission();
+        if (l)
+        {
+            auto permission = metadata.permission();
 
-        cout << (metadata.isDirectory() ? "d" : "-")
-             << (permission.user().read() ? "r" : "-")
-             << (permission.user().write() ? "w" : "-")
-             << (permission.other().read() ? "r" : "-")
-             << (permission.other().write() ? "w" : "-")
-             << " " << hex << setw(8) << setfill('0') << e.blockNum
-             << " " << dec << setw(10) << setfill(' ') << file.size()
-             << " " << setw(8) << getUser(file.metadata().ownerUID()).name
-             << " " << e.name;
-        if (metadata.isDirectory())
-            cout << "/";
-        cout << endl;
+            cout << (metadata.isDirectory() ? "d" : "-")
+                 << (permission.user().read() ? "r" : "-")
+                 << (permission.user().write() ? "w" : "-")
+                 << (permission.other().read() ? "r" : "-")
+                 << (permission.other().write() ? "w" : "-")
+                 << " " << hex << setw(8) << setfill('0') << e.blockNum
+                 << " " << dec << setw(10) << setfill(' ') << file.size()
+                 << " " << setw(8) << getUser(file.metadata().ownerUID()).name
+                 << " " << e.name;
+            if (metadata.isDirectory())
+                cout << "/";
+            cout << (nullTerminate ? '\0' : '\n');
+        }
+        else
+        {
+            cout << e.name;
+            if (metadata.isDirectory())
+                cout << "/";
+            cout << (nullTerminate ? '\0' : '\t');
+        }
     }
+
+    if (!l)
+        cout << endl;
 
     return 0;
 }
@@ -205,7 +248,7 @@ int rm(int argc, char *argv[])
 {
     int opt;
     bool r = false;
-    while ((opt = getopt(argc + 1, argv - 1, "r")) != -1) // getopt expect options start at argv index 1, not 0;
+    while ((opt = cmdgetopt(argc, argv, "r")) != -1)
     {
         switch (opt)
         {
@@ -216,12 +259,12 @@ int rm(int argc, char *argv[])
             throw runtime_error("invalid argument");
         }
     }
-    if (optind > argc)
+    if (cmdoptind >= argc)
     {
         throw runtime_error("缺少参数：要删除的目录。");
     }
 
-    for (int i = optind - 1; i < argc; i++)
+    for (int i = cmdoptind; i < argc; i++)
     {
         fs::path p = argv[i];
         blockNum_t parentN = getBlockNumberByPath(p.parent_path());
@@ -260,12 +303,31 @@ int read(int argc, char *argv[])
     }
     blockNum_t n = getBlockNumberByPath(argv[0]);
     auto file = file::open(n);
-    if(file.metadata().isDirectory())
+    if (file.metadata().isDirectory())
         throw runtime_error("cannot read from a directory.");
 
     auto stream = file.openStream();
     cout << stream.rdbuf();
     return 0;
+}
+
+file openOrCreateForWrite(directory &dir, string filename)
+{
+    try
+    {
+        blockNum_t n = dir.findEntry(filename);
+        auto f = file::open(n);
+        if (f.metadata().isDirectory())
+            throw runtime_error("cannot write to a directory.");
+        f.truncate();
+        return f;
+    }
+    catch (out_of_range &)
+    {
+        blockNum_t n = findEmptyBlock();
+        dir.addEntry(directoryEntry(filename, n));
+        return file::create(fileMetadata(currentUser().uid), n);
+    }
 }
 
 int write(int argc, char *argv[])
@@ -277,24 +339,9 @@ int write(int argc, char *argv[])
     fs::path p(argv[0]);
     blockNum_t parentN = getBlockNumberByPath(p.parent_path());
     auto dir = directory::open(parentN);
-    unique_ptr<file> f;
+    auto f = openOrCreateForWrite(dir, p.filename());
 
-    try
-    {
-        blockNum_t n = dir.findEntry(p.filename());
-        f = make_unique<file>(file::open(n));
-        if (f->metadata().isDirectory())
-            throw runtime_error("cannot write to a directory.");
-        f->truncate();
-    }
-    catch(out_of_range&)
-    {
-        blockNum_t n = findEmptyBlock();
-        f = make_unique<file>(file::create(fileMetadata(currentUser().uid), n));
-        dir.addEntry(directoryEntry(p.filename(), n));
-    }
-
-    auto stream = f->openStream();
+    auto stream = f.openStream();
     stream << cin.rdbuf();
     return 0;
 }
