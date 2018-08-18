@@ -3,8 +3,7 @@ _ffs()
     COMPREPLY=()
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
-    local ffsexe="${COMP_WORDS[0]}"
-    local cmds="init help login whoami adduser mkdir cd pwd ls rm read write"
+    local cmds="init help login whoami adduser mkdir cd pwd ls rm read write chmod"
 
     if [ $COMP_CWORD -eq 1 ]
     then
@@ -12,18 +11,6 @@ _ffs()
         COMPREPLY=( $(compgen -W "${cmds}" -- ${cur}) )
         return 0
     fi
-
-    # cmd="${COMP_WORDS[1]}"
-    # case "$cmd" in
-    # "cd")
-    #     local files=()
-    #     readarray -d '' -t files < <("$ffsexe" ls -0)
-    #     unset -v files[-1]
-    #     local pattern="^$cur.*/$"
-    #     for index in "${!files[@]}" ; do [[ ${files[$index]} =~ $pattern ]] || unset -v files[$index] ; done
-    #     COMPREPLY=( "${files[@]}" )
-    #     ;;
-    # esac
 }
 
 complete -o nospace -F _ffs ffs

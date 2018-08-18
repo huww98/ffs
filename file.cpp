@@ -104,3 +104,10 @@ void file::truncate()
 {
     fs::resize_file(this->path(), fileMetadataSize);
 }
+
+void file::saveMetadata()
+{
+    auto stream = this->openStream();
+    stream.seekp(0);
+    stream << fileMetadataPresistent::build(this->metadata());
+}

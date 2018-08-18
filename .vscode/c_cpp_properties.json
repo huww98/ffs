@@ -2,12 +2,15 @@
     "configurations": [
         {
             "name": "WSL",
-            "intelliSenseMode": "clang-x64",
+            "intelliSenseMode": "gcc-x64",
             "includePath": [
                 "${workspaceFolder}/**"
             ],
             "compilerPath": "/usr/bin/gcc-8",
-            "cppStandard": "c++17"
+            "cppStandard": "c++17",
+            "defines": [
+                "__is_assignable(a, b)=true"
+            ]
         }
     ],
     "version": 4

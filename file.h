@@ -96,6 +96,7 @@ class file
     std::size_t size();
     void remove();
     void truncate();
+    void saveMetadata();
 };
 
 #endif // FILE_H

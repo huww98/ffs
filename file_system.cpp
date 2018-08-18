@@ -6,11 +6,13 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <string>
 #include <vector>
 #include <getopt.h>
 
 #include "user.h"
 #include "directory.h"
+#include "mode_change.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -113,11 +115,17 @@ int cd(int argc, char *argv[])
     return 0;
 }
 
+class missing_argument : public runtime_error
+{
+  public:
+    missing_argument(string msg) : runtime_error("缺少参数：" + msg) {}
+};
+
 int mkdir(int argc, char *argv[])
 {
     if (argc == 0)
     {
-        throw runtime_error("缺少参数：要创建的目录。");
+        throw missing_argument("要创建的目录");
     }
 
     fs::path p = argv[0];
@@ -261,7 +269,7 @@ int rm(int argc, char *argv[])
     }
     if (cmdoptind >= argc)
     {
-        throw runtime_error("缺少参数：要删除的目录。");
+        throw missing_argument("要删除的目录");
     }
 
     for (int i = cmdoptind; i < argc; i++)
@@ -299,7 +307,7 @@ int read(int argc, char *argv[])
 {
     if (argc == 0)
     {
-        throw runtime_error("缺少参数：要读取的文件。");
+        throw missing_argument("要读取的文件");
     }
     blockNum_t n = getBlockNumberByPath(argv[0]);
     auto file = file::open(n);
@@ -334,7 +342,7 @@ int write(int argc, char *argv[])
 {
     if (argc == 0)
     {
-        throw runtime_error("缺少参数：要写入的文件。");
+        throw missing_argument("要写入的文件");
     }
     fs::path p(argv[0]);
     blockNum_t parentN = getBlockNumberByPath(p.parent_path());
@@ -343,5 +351,30 @@ int write(int argc, char *argv[])
 
     auto stream = f.openStream();
     stream << cin.rdbuf();
+    return 0;
+}
+
+int chmod(int argc, char *argv[])
+{
+    if (argc == 0)
+    {
+        throw missing_argument("要更改的权限");
+    }
+    modeChanges changes(argv[0]);
+
+    if (argc <= 1)
+    {
+        throw missing_argument("要更改权限的文件");
+    }
+
+    for (int i = 1; i < argc; i++)
+    {
+        fs::path p(argv[i]);
+        auto f = file::open(getBlockNumberByPath(p));
+        auto permission = f.metadata().permission();
+        changes.apply(permission);
+        f.saveMetadata();
+    }
+
     return 0;
 }

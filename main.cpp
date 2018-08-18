@@ -28,7 +28,9 @@ commandEntry validCommands[]{
     {"rm", rm},
     {"read", read},
     {"write", write},
-    initCommand, helpCommand};
+    {"chmod", chmod},
+    initCommand,
+    helpCommand};
 
 int main(int argc, char *argv[])
 {
