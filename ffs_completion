@@ -3,7 +3,7 @@ _ffs()
     COMPREPLY=()
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
-    local cmds="init help login whoami adduser mkdir cd pwd ls rm read write chmod"
+    local cmds="init help login whoami adduser mkdir cd pwd ls rm read write chmod chown"
 
     if [ $COMP_CWORD -eq 1 ]
     then

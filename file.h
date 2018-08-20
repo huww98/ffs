@@ -74,6 +74,7 @@ class fileMetadata
     fileMetadata(fileMetadataPresistent);
     filePermission permission() { return filePermission(_attributeData); }
     ffsuid_t ownerUID() const { return _ownerUID; }
+    void ownerUID(ffsuid_t uid) { _ownerUID = uid; }
     bool isDirectory() const { return _attributeData & isDirectoryMask; }
     auto attributeData() const { return _attributeData; }
 };

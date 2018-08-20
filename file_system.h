@@ -12,5 +12,6 @@ int rm(int argc, char *argv[]);
 int read(int argc, char *argv[]);
 int write(int argc, char *argv[]);
 int chmod(int argc, char *argv[]);
+int chown(int argc, char *argv[]);
 
 #endif // FILES_H

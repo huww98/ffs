@@ -29,6 +29,7 @@ commandEntry validCommands[]{
     {"read", read},
     {"write", write},
     {"chmod", chmod},
+    {"chown", chown},
     initCommand,
     helpCommand};
 

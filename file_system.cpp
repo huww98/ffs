@@ -378,3 +378,27 @@ int chmod(int argc, char *argv[])
 
     return 0;
 }
+
+int chown(int argc, char *argv[])
+{
+    if (argc == 0)
+    {
+        throw missing_argument("所有者");
+    }
+    auto newOwner = getUser(argv[0]);
+
+    if (argc <= 1)
+    {
+        throw missing_argument("要更改所有者的文件");
+    }
+
+    for (int i = 1; i < argc; i++)
+    {
+        fs::path p(argv[i]);
+        auto f = file::open(getBlockNumberByPath(p));
+        f.metadata().ownerUID(newOwner.uid);
+        f.saveMetadata();
+    }
+
+    return 0;
+}

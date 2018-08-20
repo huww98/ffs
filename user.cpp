@@ -41,21 +41,10 @@ int login(int argc, char *argv[])
         return 1;
     }
 
-    string userName(argv[0]);
+    auto user = getUser(argv[0]);
+    doLogin(user.uid);
 
-    ifstream users(userListFilePath);
-    user u;
-    while (users >> u)
-    {
-        if (userName == u.name)
-        {
-            doLogin(u.uid);
-            return 0;
-        }
-    }
-
-    cerr << "ERROR 未知用户：" << userName << endl;
-    return 1;
+    return 0;
 }
 
 bool hasUserInit()
@@ -101,6 +90,21 @@ user getUser(ffsuid_t uid)
 
     stringstream errMsg;
     errMsg << "uid " << uid << " not exists";
+    throw out_of_range(errMsg.str());
+}
+
+user getUser(string name)
+{
+    ifstream users(userListFilePath);
+    user u;
+    while (users >> u)
+    {
+        if (u.name == name)
+            return u;
+    }
+
+    stringstream errMsg;
+    errMsg << "user name " << name << " not exists";
     throw out_of_range(errMsg.str());
 }
 

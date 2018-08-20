@@ -26,6 +26,7 @@ read    读取文件内容，写入标准输出流
 write   将标准输入流写入文件
 rm      删除文件
 chmod   更改文件的权限
+chown   更改文件的所有者
 
 有关各命令的详细使用方式请使用 'ffs help <命令>' 查看)---"},
 
@@ -79,7 +80,7 @@ chmod   更改文件的权限
 
     {"chmod", R"---(更改文件的权限
 
-格式： ffs chmod [<模式>][,<模式>]... [<路径>]...
+格式： ffs chmod <模式>[,<模式>]... <路径>...
 
 模式： [uoa]*([+-=][rw]*)+
 
@@ -90,7 +91,11 @@ as if (a) were given.
 The operator + causes the selected file mode bits to be added to the existing file mode bits of each file;
 - causes them to be removed; and = causes them to be added and causes unmentioned bits to be removed.
 
-The letters rw select file mode bits for the affected users: read (r), write (w).)---"}};
+The letters rw select file mode bits for the affected users: read (r), write (w).)---"},
+
+    {"chown", R"---(更改文件的所有者
+
+格式： ffs chown <用户名> <路径>...)---"}};
 
 int help(int argc, char *argv[])
 {
