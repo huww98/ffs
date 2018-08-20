@@ -88,7 +88,7 @@ modeChanges::modeChanges(string s)
     string mode;
     while (getline(inputss, mode, ','))
     {
-        static regex modePattern("([uoa]*)([+-=])([rw]*)");
+        static regex modePattern("([uoa]*)((?:[+-=][rw]*)+)");
         smatch match;
         regex_match(mode, match, modePattern); // TODO: Workaround from https://github.com/Microsoft/vscode-cpptools/issues/2328 applied
         if (match.empty())
@@ -114,15 +114,25 @@ modeChanges::modeChanges(string s)
             addAllTarget(targets);
         }
 
-        char c = match[2].str()[0];
-        auto &op = modeChangeOperation::all.at(c);
+        string modeChanges = match[2].str();
+        static regex modeChangePattern("([+-=])([rw]*)");
 
-        modeChange::permissions_t permissions;
-        for (auto c : match[3].str())
+        sregex_iterator changeBegin(modeChanges.begin(), modeChanges.end(), modeChangePattern);
+        sregex_iterator changeEnd;
+
+        for (auto it = changeBegin; it != changeEnd; ++it)
         {
-            permissions.push_back(permissionAccessor::all.at(c));
-        }
+            auto changeMatch = *it;
+            char c = changeMatch[1].str()[0];
+            auto &op = modeChangeOperation::all.at(c);
 
-        this->changes.push_back(modeChange(targets, permissions, op));
+            modeChange::permissions_t permissions;
+            for (auto c : changeMatch[2].str())
+            {
+                permissions.push_back(permissionAccessor::all.at(c));
+            }
+
+            this->changes.push_back(modeChange(targets, permissions, op));
+        }
     }
 }

@@ -81,7 +81,16 @@ chmod   更改文件的权限
 
 格式： ffs chmod [<模式>][,<模式>]... [<路径>]...
 
-模式： [uoa]*[+-=][rw]*)---"}};
+模式： [uoa]*([+-=][rw]*)+
+
+A combination of the letters uoa controls which users' access to the file will be changed: the user who owns
+it (u), users other than the file's owner (o), or all users (a). If none of these are given, the effect is
+as if (a) were given.
+
+The operator + causes the selected file mode bits to be added to the existing file mode bits of each file;
+- causes them to be removed; and = causes them to be added and causes unmentioned bits to be removed.
+
+The letters rw select file mode bits for the affected users: read (r), write (w).)---"}};
 
 int help(int argc, char *argv[])
 {
