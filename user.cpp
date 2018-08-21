@@ -141,3 +141,8 @@ int adduser(int argc, char *argv[])
 
     return 0;
 }
+
+bool isRoot(ffsuid_t uid)
+{
+    return uid == rootUID;
+}

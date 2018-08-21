@@ -21,5 +21,6 @@ void initUser();
 user currentUser();
 user getUser(ffsuid_t);
 user getUser(std::string name);
+bool isRoot(ffsuid_t);
 
 #endif // USER_H

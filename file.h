@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <map>
 
 #include "user.h"
 
@@ -46,6 +47,31 @@ class linuxStylePermission final : public permission
     void write(bool w) override { setBit(*data, writeMask, w); }
 };
 
+class permissionAccessor
+{
+  public:
+    virtual bool get(permission &) const = 0;
+    virtual void set(permission &, bool) const = 0;
+
+    static const std::map<char, std::reference_wrapper<permissionAccessor>> all;
+};
+class readPermissionAccessor : public permissionAccessor
+{
+  public:
+    bool get(permission &p) const override { return p.read(); }
+    void set(permission &p, bool b) const override { p.read(b); }
+
+    static readPermissionAccessor accessor;
+};
+class writePermissionAccessor : public permissionAccessor
+{
+  public:
+    bool get(permission &p) const override { return p.write(); }
+    void set(permission &p, bool b) const override { p.write(b); }
+
+    static writePermissionAccessor accessor;
+};
+
 class filePermission
 {
   private:
@@ -69,6 +95,8 @@ class fileMetadata
 
     constexpr static uint8_t isDirectoryMask = 1 << 7;
 
+    void ensurePermission(ffsuid_t currentUid, const permissionAccessor& accessor);
+
   public:
     fileMetadata(ffsuid_t ownerUID, bool isDirectory = false);
     fileMetadata(fileMetadataPresistent);
@@ -77,6 +105,10 @@ class fileMetadata
     void ownerUID(ffsuid_t uid) { _ownerUID = uid; }
     bool isDirectory() const { return _attributeData & isDirectoryMask; }
     auto attributeData() const { return _attributeData; }
+
+    void ensureRead(ffsuid_t currentUid);
+    void ensureWrite(ffsuid_t currentUid);
+    void ensureOwnership(ffsuid_t currentUid);
 };
 
 class file

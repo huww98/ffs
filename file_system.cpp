@@ -132,6 +132,8 @@ int mkdir(int argc, char *argv[])
     blockNum_t parentBlockNum = getBlockNumberByPath(p.parent_path());
 
     auto parentDir = directory::open(parentBlockNum);
+    auto u = currentUser();
+    parentDir.dirFile().metadata().ensureWrite(u.uid);
     auto newDirBlockNum = findEmptyBlock();
     auto dir = directory::create(newDirBlockNum);
     dir.addEntry(directoryEntry(currentDirEntryName, newDirBlockNum));
@@ -194,6 +196,8 @@ int ls(int argc, char *argv[])
 
     auto dirBlockNum = getBlockNumberByPath(cmdoptind < argc ? argv[cmdoptind] : "");
     auto dir = directory::open(dirBlockNum);
+    auto u = currentUser();
+    dir.dirFile().metadata().ensureRead(u.uid);
 
     for (auto &e : dir.allEntries())
     {
@@ -231,18 +235,19 @@ int ls(int argc, char *argv[])
     return 0;
 }
 
-void rmdir(file &dirFile)
+void rmdir(file &dirFile, ffsuid_t currentUid)
 {
     auto dir = directory(dirFile);
     for (auto &e : dir.allEntries())
     {
+        dirFile.metadata().ensureWrite(currentUid);
         if (e.name == parentDirEntryName || e.name == currentDirEntryName)
             continue;
 
         auto file = file::open(e.blockNum);
         if (file.metadata().isDirectory())
         {
-            rmdir(file);
+            rmdir(file, currentUid);
         }
         else
         {
@@ -272,11 +277,14 @@ int rm(int argc, char *argv[])
         throw missing_argument("要删除的目录");
     }
 
+    auto u = currentUser();
+
     for (int i = cmdoptind; i < argc; i++)
     {
         fs::path p = argv[i];
         blockNum_t parentN = getBlockNumberByPath(p.parent_path());
         auto parentDir = directory::open(parentN);
+        parentDir.dirFile().metadata().ensureWrite(u.uid);
         streampos pos;
         blockNum_t n = parentDir.findEntry(p.filename(), pos);
         if (n == rootDirBlockNum)
@@ -291,7 +299,7 @@ int rm(int argc, char *argv[])
                 errMsg << p << " is a directory, but no -r is specified.";
                 throw runtime_error(errMsg.str());
             }
-            rmdir(file);
+            rmdir(file, u.uid);
         }
         else
         {
@@ -314,6 +322,9 @@ int read(int argc, char *argv[])
     if (file.metadata().isDirectory())
         throw runtime_error("cannot read from a directory.");
 
+    auto u = currentUser();
+    file.metadata().ensureRead(u.uid);
+
     auto stream = file.openStream();
     cout << stream.rdbuf();
     return 0;
@@ -321,17 +332,20 @@ int read(int argc, char *argv[])
 
 file openOrCreateForWrite(directory &dir, string filename)
 {
+    auto u = currentUser();
     try
     {
         blockNum_t n = dir.findEntry(filename);
         auto f = file::open(n);
         if (f.metadata().isDirectory())
             throw runtime_error("cannot write to a directory.");
+        f.metadata().ensureWrite(u.uid);
         f.truncate();
         return f;
     }
     catch (out_of_range &)
     {
+        dir.dirFile().metadata().ensureWrite(u.uid);
         blockNum_t n = findEmptyBlock();
         dir.addEntry(directoryEntry(filename, n));
         return file::create(fileMetadata(currentUser().uid), n);
@@ -367,10 +381,13 @@ int chmod(int argc, char *argv[])
         throw missing_argument("要更改权限的文件");
     }
 
+    auto u = currentUser();
+
     for (int i = 1; i < argc; i++)
     {
         fs::path p(argv[i]);
         auto f = file::open(getBlockNumberByPath(p));
+        f.metadata().ensureOwnership(u.uid);
         auto permission = f.metadata().permission();
         changes.apply(permission);
         f.saveMetadata();
@@ -392,10 +409,13 @@ int chown(int argc, char *argv[])
         throw missing_argument("要更改所有者的文件");
     }
 
+    auto u = currentUser();
+
     for (int i = 1; i < argc; i++)
     {
         fs::path p(argv[i]);
         auto f = file::open(getBlockNumberByPath(p));
+        f.metadata().ensureOwnership(u.uid);
         f.metadata().ownerUID(newOwner.uid);
         f.saveMetadata();
     }

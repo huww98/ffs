@@ -3,11 +3,19 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <map>
 
 using namespace std;
 namespace fs = std::filesystem;
 
 const fs::path blocksDirPath = "blocks";
+
+readPermissionAccessor readPermissionAccessor::accessor;
+writePermissionAccessor writePermissionAccessor::accessor;
+
+const map<char, reference_wrapper<permissionAccessor>> permissionAccessor::all = {
+    {'r', readPermissionAccessor::accessor},
+    {'w', writePermissionAccessor::accessor}};
 
 fs::path file::path(blockNum_t blockNum)
 {
@@ -76,6 +84,43 @@ fileMetadata::fileMetadata(ffsuid_t ownerUID, bool isDirectory)
 fileMetadata::fileMetadata(fileMetadataPresistent p)
     : _attributeData(p.attributeData), _ownerUID(p.ownerUID)
 {
+}
+
+class permission_denied : public runtime_error
+{
+  public:
+    permission_denied() : runtime_error("permission denied.") {}
+};
+
+void fileMetadata::ensurePermission(ffsuid_t currentUid, const permissionAccessor& accessor)
+{
+    if(isRoot(currentUid))
+        return;
+
+    auto perm = this->permission();
+    if (_ownerUID == currentUid && accessor.get(perm.user()))
+        return;
+
+    if(accessor.get(perm.other()))
+        return;
+
+    throw permission_denied();
+}
+
+void fileMetadata::ensureRead(ffsuid_t currentUid)
+{
+    this->ensurePermission(currentUid, readPermissionAccessor());
+}
+
+void fileMetadata::ensureWrite(ffsuid_t currentUid)
+{
+    this->ensurePermission(currentUid, writePermissionAccessor());
+}
+
+void fileMetadata::ensureOwnership(ffsuid_t currentUid)
+{
+    if (currentUid != this->_ownerUID && !isRoot(currentUid))
+        throw permission_denied();
 }
 
 fstream file::openStream()

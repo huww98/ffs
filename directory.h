@@ -29,6 +29,8 @@ class directory
 
   public:
     directory(file f) : _file(f) {}
+    file &dirFile() { return _file; }
+
     static directory create(blockNum_t blockNum);
     static directory open(blockNum_t blockNum);
     void addEntry(directoryEntry entry);

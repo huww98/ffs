@@ -27,30 +27,6 @@ class otherTarget : public changeTarget
     static otherTarget instance;
 };
 
-class permissionAccessor
-{
-  public:
-    virtual bool get(permission &) = 0;
-    virtual void set(permission &, bool) = 0;
-
-    static const std::map<char, std::reference_wrapper<permissionAccessor>> all;
-};
-class readPermissionAccessor : public permissionAccessor
-{
-  public:
-    bool get(permission &p) override { return p.read(); }
-    void set(permission &p, bool b) override { p.read(b); }
-
-    static readPermissionAccessor accessor;
-};
-class writePermissionAccessor : public permissionAccessor
-{
-  public:
-    bool get(permission &p) override { return p.write(); }
-    void set(permission &p, bool b) override { p.write(b); }
-
-    static writePermissionAccessor accessor;
-};
 class modeChangeOperation;
 class modeChange
 {

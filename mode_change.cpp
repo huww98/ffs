@@ -8,9 +8,6 @@ using namespace std;
 userTarget userTarget::instance;
 otherTarget otherTarget::instance;
 
-readPermissionAccessor readPermissionAccessor::accessor;
-writePermissionAccessor writePermissionAccessor::accessor;
-
 addChangeOperation addChangeOperation::instance;
 removeChangeOperation removeChangeOperation::instance;
 setChangeOperation setChangeOperation::instance;
@@ -19,10 +16,6 @@ const map<char, reference_wrapper<changeTarget>>
     changeTarget::all = {
         {'u', userTarget::instance},
         {'o', otherTarget::instance}};
-
-const map<char, reference_wrapper<permissionAccessor>> permissionAccessor::all = {
-    {'r', readPermissionAccessor::accessor},
-    {'w', writePermissionAccessor::accessor}};
 
 const map<char, reference_wrapper<modeChangeOperation>> modeChangeOperation::all = {
     {'+', addChangeOperation::instance},
